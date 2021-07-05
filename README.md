@@ -1,1 +1,1 @@
-# covid_saopaulo_card
+#  Fake são paulo's covid card.
