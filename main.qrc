@@ -14,17 +14,5 @@
 		<file alias="jsBack.js">./js/jsBack.js</file>
 
 		
-		<file alias="gsp.png">./images/gsp.png</file>
-		<file alias="gsp2.png">./images/gsp2.png</file>
-		<file alias="vcd.png">./images/vcd.png</file>
-		<file alias="bk.png">./images/bk.png</file>
-		<file alias="print.png">./images/print.png</file>
-
-
-		<file alias="font1.otf">./fonts/font1.otf</file>
-		<file alias="font2.ttf">./fonts/font2.ttf</file>
-		<file alias="font3.ttf">./fonts/font3.ttf</file>
-		<file alias="font4.ttf">./fonts/font4.ttf</file>
-		<file alias="font5.ttf">./fonts/font5.ttf</file>
 	</qresource>
 </RCC>

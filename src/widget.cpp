@@ -1,4 +1,4 @@
-#include "Widget.h"
+#include "widget.h"
 
 #include <QRect>
 #include <QApplication>
@@ -21,33 +21,37 @@
 
 #include <QFontDatabase>
 
-Widget::Widget(QWidget *parent) : QWidget(parent) {
+#ifdef ANDROID
+	#include <QAndroidJniObject>
+	#include <QtAndroid>
+	#include <thread>
+#endif
+
+widget::widget(QWidget *parent) : QWidget(parent) {
 	build();
 	configure();
 	setLayouts();
 
+	//toastMessage("test");
 	qDebug() << "appending font " << QFontDatabase::addApplicationFont(":/font1.otf");
 	qDebug() << "appending font " << QFontDatabase::addApplicationFont(":/font2.ttf");
 	qDebug() << "appending font " << QFontDatabase::addApplicationFont(":/font3.ttf");
 	qDebug() << "appending font " << QFontDatabase::addApplicationFont(":/font4.ttf");
 	qDebug() << "appending font " << QFontDatabase::addApplicationFont(":/font5.ttf");
-	QFontDatabase font;
-	qDebug() << "______families___ " << font.families();
 }
 
 
-void Widget::build() {
+void widget::build() {
 	mVboxLayout = new QVBoxLayout(this);
 	mQWidget = new QQuickWidget(this);
 }
 
 
-void Widget::configure() {
+void widget::configure() {
 	QRect rect = QApplication::desktop()->screenGeometry();
-	mSize = QSize(rect.width(), rect.height()*.95);
-	emit sizeChanged();
+	setSize(QSize(rect.width(), rect.height()*.95));
 
-	mQWidget->setFixedSize(mSize);
+
 	QQmlContext *obj = mQWidget->rootContext();
 	obj->setContextProperty("widget", this);
 	mQWidget->setSource(QUrl(QStringLiteral("qrc:/main.qml")));
@@ -72,18 +76,16 @@ void Widget::configure() {
 
 }
 
-void Widget::setLayouts() {
+void widget::setLayouts() {
 	mVboxLayout->addWidget(mQWidget);
 	mVboxLayout->setMargin(0);
 	QWidget::setLayout(mVboxLayout);
 }
 
 
-bool Widget::takeAPrint(QString filename) {
+bool widget::takeAPrint(QString filename) {
 	QSize tsize = mSize;
 	setSize(QSize(200*5, 275*5));
-
-
 	QPrinter printer;
 	printer.setOutputFormat(QPrinter::PdfFormat);
 	printer.setOutputFileName(filename);
@@ -101,14 +103,53 @@ bool Widget::takeAPrint(QString filename) {
 	QRect rect = QRect(0,0, mSize.width(), mSize.height());
 	paint.drawPixmap(rect, pixmap, rect);
 	qDebug() << "end saving" << paint.end();
-	
 	setSize(tsize);
-
 	return true;
 }
 
-void Widget::setSize(QSize size) {
+void widget::setSize(QSize size) {
 	mSize = size;
 	mQWidget->setFixedSize(mSize);
+	setFixedSize(mSize);
 	emit sizeChanged();
 }
+
+QString widget::getDirOut() {
+#ifdef ANDROID
+	getPermission();
+	return "/sdcard";
+#else
+	return "/tmp";
+#endif
+}
+
+
+void widget::toastMessage(QString msg) {
+#ifdef ANDROID
+	QtAndroid::runOnAndroidThread([msg] {
+		QAndroidJniObject txt = QAndroidJniObject::fromString(msg);
+		QAndroidJniObject toast = QAndroidJniObject::callStaticObjectMethod(
+				"android/widget/Toast", "makeText",
+				"(Landroid/content/Context;Ljava/lang/CharSequence;I)Landroid/widget/Toast;",
+					QtAndroid::androidActivity().object(),
+					txt.object(),
+					jint(1));
+		toast.callMethod<void>("show");
+	});
+#else
+	QMessageBox::information(this, "information", msg);
+#endif
+
+}
+
+#ifdef ANDROID
+void widget::getPermission() {
+	QString w = "android.permission.WRITE_EXTERNAL_STORAGE";
+	QString r = "android.permission.READ_EXTERNAL_STORAGE";
+	while (QtAndroid::checkPermission(w) == QtAndroid::PermissionResult::Denied)
+			QtAndroid::requestPermissionsSync({w});
+	while (QtAndroid::checkPermission(w) == QtAndroid::PermissionResult::Denied)
+			QtAndroid::requestPermissionsSync({w});
+
+}
+#endif

@@ -9,8 +9,8 @@ Item {
 	width: widget.size.width 
 	height: widget.size.height
 
-
-	property var ta: " Recomendado preencher manualmente apos impressão para ficar mais identico.<br> Ao clicar em sauvar os arquivos pdf's com tamanhos normais serão sauvos em /sdcard/front.pdf e /sdcard/back.pdf.<br> Imprima o arquivo front.pdf , entao vire a folha e imprima o arquivo back.pdf"
+	property var dir: widget.getDirOut();
+	property var ta: " Recomendado preencher manualmente apos impressão para ficar mais identico.<br> Ao clicar em sauvar os arquivos pdf's com tamanhos normais serão sauvos em "+dir+"/front.pdf e "+dir+"/back.pdf.<br> Imprima o arquivo front.pdf , entao vire a folha e imprima o arquivo back.pdf"
 
 	property var ca: "red"
 	
@@ -37,7 +37,7 @@ Item {
 			id: paper
 			width: root.cardWidth
 			height: root.cardHeight
-		
+			x: back.visible ? parent.width-width : 0	
 			Back {
 				id: back
 				width: parent.width
@@ -105,13 +105,16 @@ Item {
 
 		onClicked: {
 			root.printMode = true
-			widget.takeAPrint("/sdcard/front.pdf");
+			widget.takeAPrint(root.dir+"/front.pdf");
+			widget.toastMessage("Saved to "+root.dir+"/front.pdf");
 			card.visible = false
 			back.visible = true
-				widget.takeAPrint("/sdcard/back.pdf");
+			widget.takeAPrint(root.dir+"/back.pdf");
+			widget.toastMessage("Saved to "+root.dir+"/back.pdf");
 			card.visible = true
 			back.visible = false
 			root.printMode = false
+
 		}
 	
 	}
